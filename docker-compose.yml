@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/multica_todo}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/taskflow}
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-nextauth-secret-change-me}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
@@ -24,11 +24,10 @@ services:
 
   mongo:
     image: mongo:7
-    # Uncomment to expose Mongo on the host (e.g. for Compass / mongosh on the host).
-    # ports:
-    #   - "27017:27017"
+    ports:
+      - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - mongo-data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
       interval: 10s
@@ -38,4 +37,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  mongo_data:
+  mongo-data:

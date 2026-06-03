@@ -44,7 +44,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-App: <http://localhost:3000>. Mongo runs inside the compose network at `mongodb://mongo:27017/multica_todo`. To reach it from the host (e.g. Compass / `mongosh`), uncomment the `ports` block under `mongo` in `docker-compose.yml`.
+App: <http://localhost:3000>. Mongo is published on the host at `mongodb://localhost:27017/taskflow` (compose service hostname `mongo` inside the network). Connect from Compass / `mongosh` on the host using `mongodb://localhost:27017`.
+
+If a host process already binds `:27017`, stop it first or override the mapping in a `docker-compose.override.yml`.
 
 Stop & wipe data:
 
@@ -56,7 +58,7 @@ docker compose down -v
 
 | Variable | Required | Description |
 |---|---|---|
-| `MONGODB_URI` | yes | Mongo connection string. In docker-compose use `mongodb://mongo:27017/multica_todo`. |
+| `MONGODB_URI` | yes | Mongo connection string. In docker-compose use `mongodb://mongo:27017/taskflow`. |
 | `JWT_SECRET` | yes | Secret for signing JWT access tokens. |
 | `NEXTAUTH_SECRET` | yes | Secret for NextAuth / session cookies. |
 | `NEXTAUTH_URL` | yes | Public base URL of the app (e.g. `http://localhost:3000`). |
