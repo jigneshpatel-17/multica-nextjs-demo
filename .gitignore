@@ -34,3 +34,8 @@ yarn-error.log*
 # editor
 .idea
 .vscode
+
+# test artifacts
+test-results
+playwright-report
+.lighthouseci
