@@ -1,38 +1,42 @@
 import { expect, test } from "@playwright/test";
 import { freshUser, registerViaUI } from "./_fixtures";
 
+function tasksList(page: import("@playwright/test").Page) {
+  return page.locator("ul.divide-y");
+}
+
+function taskRow(page: import("@playwright/test").Page, title: string) {
+  return tasksList(page).locator("li", { hasText: title });
+}
+
 test.describe("task CRUD + filters", () => {
   test("create, complete, edit, and delete a task", async ({ page }) => {
     const user = freshUser("crud");
     await registerViaUI(page, user);
 
     await page.goto("/tasks/new");
-    await page.locator("input[name=title]").fill("Buy groceries");
-    await page.locator("textarea[name=description]").fill("milk, eggs, bread");
+    await page.getByLabel("Title").fill("Buy groceries");
+    await page.getByLabel("Description").fill("milk, eggs, bread");
     await page.getByRole("button", { name: /create task/i }).click();
     await expect(page).toHaveURL(/\/tasks$/);
 
-    const row = page.locator("li", { hasText: "Buy groceries" });
+    const row = taskRow(page, "Buy groceries");
     await expect(row).toBeVisible();
 
-    await row.getByRole("checkbox").check();
+    await row.getByRole("checkbox").click();
     await expect(row).toContainText(/Completed/i);
 
     await row.getByRole("link", { name: /edit/i }).first().click();
-    await page.locator("input[name=title]").fill("Buy groceries (updated)");
+    await page.getByLabel("Title").fill("Buy groceries (updated)");
     await page.getByRole("button", { name: /save changes/i }).click();
     await expect(page).toHaveURL(/\/tasks$/);
-    await expect(
-      page.locator("li", { hasText: "Buy groceries (updated)" }),
-    ).toBeVisible();
+    await expect(taskRow(page, "Buy groceries (updated)")).toBeVisible();
 
-    const updatedRow = page.locator("li", { hasText: "Buy groceries (updated)" });
+    const updatedRow = taskRow(page, "Buy groceries (updated)");
     await updatedRow.getByRole("button", { name: /Actions for/i }).click();
     await page.getByRole("menuitem", { name: /delete/i }).click();
     await page.getByRole("button", { name: /^delete$/i }).click();
-    await expect(
-      page.locator("li", { hasText: "Buy groceries (updated)" }),
-    ).toHaveCount(0);
+    await expect(taskRow(page, "Buy groceries (updated)")).toHaveCount(0);
   });
 
   test("filter by status and search by title", async ({ page }) => {
@@ -41,19 +45,18 @@ test.describe("task CRUD + filters", () => {
 
     for (const title of ["Alpha task", "Beta task", "Gamma task"]) {
       await page.goto("/tasks/new");
-      await page.locator("input[name=title]").fill(title);
+      await page.getByLabel("Title").fill(title);
       await page.getByRole("button", { name: /create task/i }).click();
       await expect(page).toHaveURL(/\/tasks$/);
     }
 
-    await page.locator('input[type="search"]').fill("Beta");
-    await expect(page.locator("li", { hasText: "Beta task" })).toBeVisible();
-    await expect(page.locator("li", { hasText: "Alpha task" })).toHaveCount(0);
+    await page.getByPlaceholder(/title or description/i).fill("Beta");
+    await expect(taskRow(page, "Beta task")).toBeVisible();
+    await expect(taskRow(page, "Alpha task")).toHaveCount(0);
 
     await page.getByRole("button", { name: /clear filters/i }).click();
-    await expect(page.locator("li", { hasText: "Alpha task" })).toBeVisible();
-
-    await expect(page.locator("li").filter({ hasText: /task$/i })).toHaveCount(3);
+    await expect(taskRow(page, "Alpha task")).toBeVisible();
+    await expect(tasksList(page).locator("> li")).toHaveCount(3);
   });
 
   test("sort by priority surfaces High tasks first", async ({ page }) => {
@@ -68,16 +71,15 @@ test.describe("task CRUD + filters", () => {
 
     for (const t of tasks) {
       await page.goto("/tasks/new");
-      await page.locator("input[name=title]").fill(t.title);
-      await page.locator("select").first().selectOption(t.priority);
+      await page.getByLabel("Title").fill(t.title);
+      await page.getByLabel("Priority").selectOption(t.priority);
       await page.getByRole("button", { name: /create task/i }).click();
       await expect(page).toHaveURL(/\/tasks$/);
     }
 
-    const sortSelect = page.locator("label:has-text('Sort by') + select, label:has-text('Sort by') select").first();
-    await sortSelect.selectOption("priority");
+    await page.getByLabel("Sort by").selectOption("priority");
 
-    const firstTitle = page.locator("ul > li").first();
-    await expect(firstTitle).toContainText("High item");
+    const firstRow = tasksList(page).locator("> li").first();
+    await expect(firstRow).toContainText("High item");
   });
 });
