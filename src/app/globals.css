@@ -1,1 +1,36 @@
 @import "tailwindcss";
+
+/* ---- Static site (/site) design tokens — additive, unused by the TaskFlow app ---- */
+@theme {
+  --color-paper: #f6f1e7;
+  --color-parchment: #ece4d3;
+  --color-ink: #211d16;
+  --color-ink-soft: #5c5547;
+  --color-clay: #b5481d;
+  --color-clay-deep: #8f3613;
+  --color-fern: #4a5a38;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+}
+
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.site-reveal {
+  animation: site-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--reveal-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-reveal {
+    animation: none;
+  }
+}
